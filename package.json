@@ -1,0 +1,20 @@
+{
+  "name": "@arrempee/gatsby-plugin-taxonomies",
+  "version": "1.0.0",
+  "description": "A Gatsby plugin that allows for Hugo-esque Taxonomies on arbitrary nodes.",
+  "main": "gatsby-node.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin"
+  ],
+  "author": "rmp",
+  "license": "MIT",
+  "dependencies": {
+    "@arrempee/gatsby-helpers": "^1.0.0",
+    "prop-types": "^15.7.2",
+    "react": "^16.8.6"
+  }
+}
