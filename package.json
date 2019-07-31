@@ -1,7 +1,8 @@
 {
   "name": "@arrempee/gatsby-plugin-taxonomies",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Gatsby plugin that allows for Hugo-esque Taxonomies on arbitrary nodes.",
+  "repository": "github:rogermparent/gatsby-plugin-taxonomies",
   "main": "gatsby-node.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
