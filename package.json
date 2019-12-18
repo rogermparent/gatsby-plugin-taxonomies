@@ -1,6 +1,6 @@
 {
   "name": "@arrempee/gatsby-plugin-taxonomies",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "A Gatsby plugin that allows for Hugo-esque Taxonomies on arbitrary nodes.",
   "repository": "github:rogermparent/gatsby-plugin-taxonomies",
   "main": "gatsby-node.js",
@@ -11,11 +11,19 @@
     "gatsby",
     "gatsby-plugin"
   ],
-  "author": "rmp",
+  "author": "RMP <rogermparent@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@arrempee/gatsby-helpers": "^1.0.0",
+    "debug": "^4.1.1",
+    "lodash.kebabcase": "^4.1.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6"
+  },
+  "devDependencies": {
+    "babel-jest": "^24.9.0",
+    "babel-preset-gatsby": "^0.2.23",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^24.9.0",
+    "react-test-renderer": "^16.12.0"
   }
 }
