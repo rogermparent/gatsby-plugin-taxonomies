@@ -10,16 +10,26 @@ const sourceNodes = async (
   for (const taxonomyKey in taxonomies) {
     const taxonomyOptions = taxonomies[taxonomyKey];
 
-    const { taxonomyPagePath, termPagePath, label, terms } = taxonomyOptions;
+    const {
+      taxonomyPagePath,
+      termPagePath,
+      label,
+      label_singular,
+      terms
+    } = taxonomyOptions;
 
     // Make the Taxonomy node
 
     const taxonomyFields = {
       key: taxonomyKey,
-      label: label,
+      label,
+      label_singular,
       taxonomyPagePath: taxonomyPagePath || taxonomyKey,
       termPagePath: termPagePath || taxonomyPagePath || taxonomyKey,
-      options: taxonomyOptions
+      options: {
+        ...taxonomyOptions,
+        slugify: undefined
+      }
     };
 
     const taxonomyId = createNodeId(`Taxonomy >>> ${taxonomyKey}`);

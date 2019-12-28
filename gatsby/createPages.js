@@ -19,8 +19,11 @@ const createPages = async ({ actions, graphql, store }, pluginOptions) => {
           taxonomyPagePath
           termPagePath
           terms {
-            term {
-              slug
+            edges {
+              term {
+                id
+                slug
+              }
             }
           }
         }
@@ -28,8 +31,8 @@ const createPages = async ({ actions, graphql, store }, pluginOptions) => {
     }
   `);
 
-  if (query.error) {
-    throw query.error;
+  if (query.errors) {
+    throw query.errors;
   }
 
   for (const taxonomyNode of query.data.allTaxonomy.nodes) {
@@ -41,14 +44,13 @@ const createPages = async ({ actions, graphql, store }, pluginOptions) => {
       }
     });
 
-    if (taxonomyNode.terms) {
-      for (const { term } of taxonomyNode.terms) {
+    if (taxonomyNode.terms.edges) {
+      for (const { term } of taxonomyNode.terms.edges) {
         createPage({
           path: path.posix.join(taxonomyNode.termPagePath, term.slug),
           component: require.resolve(path.join(programDirectory, termTemplate)),
           context: {
-            termLabel: term.label,
-            termSlug: term.slug
+            id: term.id
           }
         });
       }

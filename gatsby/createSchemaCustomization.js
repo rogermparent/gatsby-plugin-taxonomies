@@ -1,11 +1,9 @@
-const slugify = require(`lodash.kebabcase`);
-
 const { withDefaults } = require(`../utils/default-options`);
-const { followSlugRedirect } = require(`../utils/term-settings`);
+const { slugifyAndRedirect } = require(`../utils/term-settings`);
 
 const createSchemaCustomization = ({ actions, schema }, pluginOptions) => {
   const { createTypes, createFieldExtension } = actions;
-  const { taxonomies } = withDefaults(pluginOptions);
+  const { taxonomies, slugify } = withDefaults(pluginOptions);
 
   createFieldExtension({
     name: "toTagSlug",
@@ -15,16 +13,15 @@ const createSchemaCustomization = ({ actions, schema }, pluginOptions) => {
     },
     extend(options, prevFieldConfig) {
       return {
-        type: "String!",
+        type: "String",
         resolve: async (source, args, context, info) => {
-          return followSlugRedirect(
+          return slugifyAndRedirect(
             taxonomies,
             options.taxonomy,
-            slugify(
-              options.field
-                ? source[options.field]
-                : context.defaultFieldResolver(source, args, context, info)
-            )
+            options.field
+              ? source[options.field]
+              : context.defaultFieldResolver(source, args, context, info),
+            slugify
           );
         }
       };
@@ -138,6 +135,16 @@ const createSchemaCustomization = ({ actions, schema }, pluginOptions) => {
     }),
 
     schema.buildObjectType({
+      name: `CountedTaxonomyTerms`,
+      fields: {
+        totalCount: "Int",
+        edges: {
+          type: `[CountedTaxonomyTerm]!`
+        }
+      }
+    }),
+
+    schema.buildObjectType({
       name: `Taxonomy`,
       fields: {
         id: { type: `ID!` },
@@ -145,13 +152,19 @@ const createSchemaCustomization = ({ actions, schema }, pluginOptions) => {
         taxonomyPagePath: { type: `String!` },
         termPagePath: { type: `String!` },
         label: { type: `String` },
+        label_singular: {
+          type: `String`,
+          resolve: async (source, args, context, info) =>
+            context.defaultFieldResolver(source, args, context, info) ||
+            source.label
+        },
         terms: {
-          type: `[CountedTaxonomyTerm]`,
+          type: `CountedTaxonomyTerms`,
           resolve: async (source, args, context, info) => {
             const query = await context.nodeModel.runQuery({
               type: `TaxonomyValueTerm`,
               query: {
-                filter: { taxonomy: { key: { eq: source.key } } }
+                filter: { taxonomy: { id: { eq: source.id } } }
               }
             });
 
@@ -169,12 +182,18 @@ const createSchemaCustomization = ({ actions, schema }, pluginOptions) => {
               } else {
                 uniqueTerms[termNode.slug] = {
                   term: termNode.id,
+                  label: termNode.label,
                   count: 1
                 };
               }
             }
 
-            return Object.values(uniqueTerms);
+            const rawTermsArray = Object.values(uniqueTerms);
+            rawTermsArray.sort((a, b) => a.label.localeCompare(b.label));
+            return {
+              totalCount: rawTermsArray.length,
+              edges: rawTermsArray.map(({ term, count }) => ({ term, count }))
+            };
           }
         }
       },

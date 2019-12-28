@@ -1,19 +1,21 @@
 const { withDefaults } = require(`../utils/default-options`);
-const slugify = require(`lodash.kebabcase`);
 
 const {
   getOrCreateTermNode,
   createValueTermNode
 } = require(`../utils/node-builders`);
 
-const { applyTermSettings } = require("../utils/term-settings.js");
+const {
+  applyTermSettings,
+  slugifyWithSettings
+} = require("../utils/term-settings.js");
 
 const onCreateNode = async (
   { node, actions, getNode, createNodeId, createContentDigest },
   pluginOptions
 ) => {
   const options = withDefaults(pluginOptions);
-  const { taxonomies, resolvers } = options;
+  const { taxonomies, resolvers, slugify } = options;
   const { createNode, createParentChildLink } = actions;
 
   const resolver = resolvers[node.internal.type];
@@ -44,7 +46,12 @@ const onCreateNode = async (
               node.internal.type
             } wasn't a string! was ${JSON.stringify(rawTermLabel)}`;
 
-          const rawTermSlug = slugify(rawTermLabel);
+          const rawTermSlug = slugifyWithSettings(
+            taxonomies,
+            taxonomyKey,
+            rawTermLabel,
+            slugify
+          );
 
           const processedTermResults = applyTermSettings(
             taxonomies,

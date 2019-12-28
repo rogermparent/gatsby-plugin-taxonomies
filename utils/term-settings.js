@@ -30,8 +30,25 @@ const followSlugRedirect = (taxonomies, taxonomyKey, slug) => {
   }
 };
 
+const slugifyAndRedirect = (taxonomies, taxonomyKey, term, slugify) => {
+  const slug = slugifyWithSettings(taxonomies, taxonomyKey, term, slugify);
+  return followSlugRedirect(taxonomies, taxonomyKey, slug);
+};
+
+const slugifyWithSettings = (taxonomies, taxonomyKey, term, slugify) => {
+  const taxonomySettings = taxonomies[taxonomyKey];
+  if (!term) return null;
+  const slug =
+    taxonomySettings && taxonomySettings.slugify
+      ? taxonomySettings.slugify(term, slugify)
+      : slugify(term);
+  return slug;
+};
+
 module.exports = {
   applyTermSettings,
   getTermSettings,
-  followSlugRedirect
+  followSlugRedirect,
+  slugifyWithSettings,
+  slugifyAndRedirect
 };
