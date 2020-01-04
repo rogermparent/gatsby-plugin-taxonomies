@@ -1,3 +1,5 @@
+**This README is out of date. I'm working on it, but in the meantime check out [gatsby-starter-recipe-book](https://github.com/rogermparent/gatsby-starter-recipe-book) for a working example of the latest version!**
+
 # Gatsby Plugin: Taxonomies
 
 This plugin allows for grouping any kind of node by arbitrarily defined
