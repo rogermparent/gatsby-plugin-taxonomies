@@ -151,13 +151,6 @@ const createSchemaCustomization = ({ actions, schema }, pluginOptions) => {
         key: { type: `String!` },
         taxonomyPagePath: { type: `String!` },
         termPagePath: { type: `String!` },
-        label: { type: `String` },
-        label_singular: {
-          type: `String`,
-          resolve: async (source, args, context, info) =>
-            context.defaultFieldResolver(source, args, context, info) ||
-            source.label
-        },
         terms: {
           type: `CountedTaxonomyTerms`,
           resolve: async (source, args, context, info) => {
