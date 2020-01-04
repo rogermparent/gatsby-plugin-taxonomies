@@ -1,11 +1,10 @@
 const { withDefaults } = require("../utils/default-options");
 const path = require("path");
 
-const createPages = async ({ actions, graphql, store }, pluginOptions) => {
+const createPages = async ({ actions, graphql }, pluginOptions) => {
   if (pluginOptions.createPages === false) return;
 
   const { createPage } = actions;
-  const programDirectory = store.getState().program.directory;
   const { createPages, taxonomyTemplate, termTemplate } = withDefaults(
     pluginOptions
   );
@@ -38,7 +37,7 @@ const createPages = async ({ actions, graphql, store }, pluginOptions) => {
   for (const taxonomyNode of query.data.allTaxonomy.nodes) {
     createPage({
       path: taxonomyNode.taxonomyPagePath,
-      component: require.resolve(path.join(programDirectory, taxonomyTemplate)),
+      component: require.resolve(path.resolve(taxonomyTemplate)),
       context: {
         id: taxonomyNode.id
       }
@@ -48,7 +47,7 @@ const createPages = async ({ actions, graphql, store }, pluginOptions) => {
       for (const { term } of taxonomyNode.terms.edges) {
         createPage({
           path: path.posix.join(taxonomyNode.termPagePath, term.slug),
-          component: require.resolve(path.join(programDirectory, termTemplate)),
+          component: require.resolve(path.resolve(termTemplate)),
           context: {
             id: term.id
           }
