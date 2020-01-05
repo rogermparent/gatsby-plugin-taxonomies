@@ -84,7 +84,7 @@ Just what it says on the tin- every term will be run through this function to
 generate that term's slug. This slug is used to access the key, and also for 
 any URLs related to that term.
 
-### taxonomyTemplate and termTemplate: String
+### taxonomyTemplate: String
 
 The path of the template to be used for the pages that list all Terms in a Taxonomy.  
 It uses `path.resolve`, meaning relative paths will be relative to the project 
