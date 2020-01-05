@@ -1,6 +1,6 @@
 {
   "name": "@arrempee/gatsby-plugin-taxonomies",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "A Gatsby plugin that allows for Hugo-esque Taxonomies on arbitrary nodes.",
   "repository": "github:rogermparent/gatsby-plugin-taxonomies",
   "main": "gatsby-node.js",
