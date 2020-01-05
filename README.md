@@ -1,5 +1,3 @@
-**This README is out of date. I'm working on it, but in the meantime check out [gatsby-starter-recipe-book](https://github.com/rogermparent/gatsby-starter-recipe-book) for a working example of the latest version!**
-
 # Gatsby Plugin: Taxonomies
 
 This plugin allows for grouping any kind of node by arbitrarily defined
@@ -20,90 +18,94 @@ As an example, the standard case for a blog might look something like this:
 
 ``` javascript
 taxonomies: {
-    tags: {
-        indexSlug: 'tags',
-        termSlug: 'tag'
-    },
-    categories: {
-        indexSlug: 'categories',
-        termSlug: 'category'
-    },
+  tags: {
+    taxonomyPagePath: 'tags',
+    termPagePath: 'tag'
+  },
+  categories: {
+    taxonomyPagePath: 'categories',
+    termPagePath: 'category'
+  },
 }
 ```
 
 The keys each config object is listed under are very important, as they are the
-primary way taxonomies are accessed as well as the name of the field name used
-to pull terms from taxonomized nodes.
+field name used to pull terms from taxonomized nodes.
 
-With the example config, the site will then have a page with an index of all the
-categories under "/categories", and pages with the "general" category will have
-be indexed under "/category/general".
+With this example config, the site will then have a page with an index of all
+the categories under "/categories", and pages with the "general" category will
+have be indexed under "/category/general".
+
+If either of these pagePath options aren't specified, the plugin will fall back
+to the Taxonomy's key.
 
 Any additional fields in the config objects will also be added to the resulting
-`Taxonomy` nodes, which could be useful for their index pages.
+Taxonomy nodes, which is useful for templates involving these Taxonomies.
 
-### termsResolvers: object
+### resolvers: object
 
 This object stores the resolver functions that are used to pull terms from
-arbitrary parent nodes. Terms will only be read from nodes that have a resolver
-here, and as such is the plugin will do nothing if this option isn't specified.
+arbitrary parent nodes. Terms will only be read from node types that have a
+resolver here, and as such the plugin will do nothing if this option isn't
+specified.
 
-The keys are the names of the types of nodes to pull from (e.g. `Mdx`,
-`MdxPage`, `MarkdownRemark`), and the value is a function much like a standard
-field resolver but using a destructured object and an extra `parentNode` field
-containing the node the terms are to be pulled from, as the source is the
-`TaxonomyTermSet` node. These resolver functions are expected to return an array
-of strings.
+The keys are the names of the node types to pull from (like `Mdx` or
+`MarkdownRemark`), and the values are functions that return an array of all the
+terms specified on the node the function is called on.
 
-As an example, this is the function used by `@arrempee/gatsby-theme-mdx-blog` to pull
-terms from `MdxPage` nodes.
+The function takes the following object as an argument:
 
-``` javascript
-const resolveMdxPageTaxonomyTerms = ({source, args, context, info, parentNode}) => {
-    const type = info.schema.getType('MdxPage');
-    const resolver = type.getFields().frontmatter.resolve;
-    const frontmatter = resolver(parentNode, {}, context, {fieldName: 'frontmatter'});
-    return frontmatter[source.taxonomy]
+```javascript
+{
+  node, // The node being processed
+  getNode, // Gatsby's getNode function
+  key: taxonomyKey, // The key of the taxonomy we're resolving for
+  options: taxonomyOptions, // The options of the current taxonomy
+  pluginOptions: options // The options of the taxonomy plugin
 }
 ```
 
-### processTerm: function(term)
+As an example, this is the function used by [gatsby-starter-recipe-book](https://github.com/rogermparent/gatsby-starter-recipe-book) to resolve its taxonomies from `MdxContentPage` nodes.
 
-Every term string will be run through this function before being added to the
-`TaxonomyTermSet`.  
-By default, this is lodash's `kebabCase`, but it can also be
-set to `false` to disable the behavior and pass terms through unchanged.
+``` javascript
+const resolveMdxContentPageTaxonomyTerms = ({
+  node, getNode, key, options
+}) => {
+  const MdxNode = getNode(node.parent)
+  return MdxNode.frontmatter[key]
+}
+```
 
-### processTermSlug: function(term)
+Don't worry about slugifying here, that's handled afterward in another function.
 
-Much like `processTerm`, each term will be run through this function *only* for
-the purposes of creating path slugs.  
-Much like `processTerm`, this is also `kebabCase` by default. Yes, it's run
-twice by default, but this also means it's simpler to disable `processTerm` while
-also keeping sane path slugs for generated pages.
+### slugify: Function(term)
 
-Be warned that if this results in something different from `processTerm`, you'll
-have to be careful that two Terms don't result in the same slug or one's page
-will overwrite the other. This is nothing to worry about with default behavior.
+Just what it says on the tin- every term will be run through this function to 
+generate that term's slug. This slug is used to access the key, and also for 
+any URLs related to that term.
 
-### taxonomyTemplate: string
+### taxonomyTemplate and termTemplate: String
 
-The path of the template to be used for Taxonomy index pages, relative to the
-site's root.
+The path of the template to be used for the pages that list all Terms in a Taxonomy.  
+It uses `path.resolve`, meaning relative paths will be relative to the project 
+root and absolute paths will be used as-is.
 
 Defaults to `src/templates/taxonomy`.
 
-### termTemplate: string
+### termTemplate: String
 
-The path of the template to be used for Term pages, relative to the site's root.
+The path of the template to be used for the pages that all Values with a specific Term attached.  
+It uses `path.resolve`, meaning relative paths will be relative to the project 
+root and absolute paths will be used as-is.
 
 Defaults to `src/templates/term`.
 
-### createPages: boolean
+### createPages: Boolean
 
-If set to false, this plugin's `createPages` callback will be aborted. Useful
-for cases where you want to handle the page creation for different Taxonomies in
-different ways, as the plugin treats them the same.
+If set to false, this plugin's `createPages` callback will be aborted.
+
+Use this if you want to handle Taxonomy term page creation on your own, like if
+you're handling different taxonomies in different ways.
 
 ## Node types
 
@@ -115,28 +117,54 @@ instead should be queried through `allTaxonomyTermSet`.
 
 #### Fields
 
-- **key**: The string this Taxonomy's config was store under. This is the
-  primary way to link to and access any particular Taxonomy.
+- **taxonomyPagePath:** The path to the Taxonomy's index page ("/**tags**")
 
-- **terms**: A list of all unique Terms that Values have under this Taxonomy.
+- **termPagePath:** Each Term page is prefixed with this ("/**tags**/tag")
 
-- **indexSlug**: The optional string used as a slug for this Taxonomy's index
-  page.
-  
-- **termSlug**: The optional string used as a slug prepended to each Term page's
-  path (probably the singular form of the Taxonomy's name).
+- **key:** The key this Taxonomy is listed under in config.
 
-### TaxonomyTermSet
+- **terms:** A list of all Terms under this Taxonomy.
 
-This node type serves as a link between a `Taxonomy` node and a Value, and also
-stores the processed Terms from the Value.
+  - **totalCount:** The number of Terms in the Taxonomy.
+
+  - **edges:** A wrapper around the listed Terms
+
+    - **count:** The amount of Values under the listed Term
+
+    - **term:** A foreign-key relation to the Term node.
+
+### TaxonomyTerm
+
+This type represents a single Taxonomy term (e.g. a tag, or a category)
 
 #### Fields
 
-- **taxonomy**: A direct link to the `Taxonomy` node.
+- **taxonomy:** A foreign-key relation to this node's parent Taxonomy.
+- **slug:** The result of running `slugify` on this term. Used as the canonical name.
+- **label:** The human-readable name for this Term. Can be specified in the options, but falls back to the original string for first non-redirected instance of this Term on a Value.
+- **labelledFromRedirect:** Indicates if the `label` field was created from a redirect. Mostly for internal use.
 
-- **value**: A direct link to the node of the Value in question. This could be
-  any type, and in the case of multiple resolvers may hold different node types
-  which necessitate conditional queries.
-  
-- **terms**: A list of all processed Terms from this node's Value
+### TaxonomyValueTerm
+
+This type serves as a link between a Term and a Value (the node being put in a Taxonomy)
+These are useful as a Type-neutral way to query for things like "all nodes with Term X".
+
+#### Fields
+
+- **label:** The original string put on the Value
+- **parent:** A foreign-key relation to the Value. Query for its fields with a Fragment.
+- **taxonomy:** A foreign-key relation to the Term's Taxonomy.
+- **term:** A foreign-key relation to the Term. You can find the slug and site-wide label here.
+
+### TaxonomyValueTerms
+
+This is a convenience Type that has resolvers to get all Terms on a Value in a
+more accessible way. One is made for each Node that has Terms.
+
+#### Fields
+
+- **parent:** A foreign-key relation to the Value
+- **termsByTaxonomy:** A convenience resolver that lists all Terms on a Value, separated by Taxonomy.
+  - **[taxonomy key]:** A list of the Terms of a particular Taxonomy on this Node. There will be one for each Taxonomy under the Taxonomy's key.
+    - **label:** The Term's original string
+    - **slug:** The Term's slugified string
